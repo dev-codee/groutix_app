@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/theme/app_colors.dart';
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/leads_provider.dart';
+import '../../providers/notifications_provider.dart';
 import '../common/empty_state.dart';
 import '../common/lead_card.dart';
+import '../common/notifications_screen.dart';
 import '../common/team_chat_modal.dart';
 import 'inspection_visit_screen.dart';
 
@@ -29,6 +32,7 @@ class _InspectionHomeScreenState extends State<InspectionHomeScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final leadsProv = context.watch<LeadsProvider>();
+    final notifsProv = context.watch<NotificationsProvider>();
     final inspections = leadsProv.getScopedLeads(UserRole.inspection);
 
     return Scaffold(
@@ -38,6 +42,33 @@ class _InspectionHomeScreenState extends State<InspectionHomeScreen> {
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
         ),
         actions: [
+          IconButton(
+            icon: Stack(
+              children: [
+                const Icon(Icons.notifications_outlined),
+                if (notifsProv.unreadCount > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                      child: Text(
+                        '${notifsProv.unreadCount}',
+                        style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w900),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            tooltip: 'Notifications',
+            onPressed: () => NotificationsScreen.show(context),
+          ),
           IconButton(
             icon: const Icon(Icons.forum_outlined),
             tooltip: 'Team Chat / Office',

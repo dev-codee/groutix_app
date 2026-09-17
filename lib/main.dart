@@ -7,8 +7,10 @@ import 'providers/auth_provider.dart';
 import 'providers/finance_provider.dart';
 import 'providers/inspection_provider.dart';
 import 'providers/leads_provider.dart';
+import 'providers/notifications_provider.dart';
 import 'providers/tasks_provider.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/common/in_app_notification_banner.dart';
 import 'screens/main_shell.dart';
 
 void main() async {
@@ -31,11 +33,15 @@ class GroutixApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => InspectionProvider()),
         ChangeNotifierProvider(create: (_) => FinanceProvider()),
         ChangeNotifierProvider(create: (_) => TasksProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationsProvider()),
       ],
       child: MaterialApp(
         title: 'Groutix Operations',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
+        builder: (context, child) => InAppNotificationBanner(
+          child: child ?? const SizedBox.shrink(),
+        ),
         home: const AuthGate(),
       ),
     );

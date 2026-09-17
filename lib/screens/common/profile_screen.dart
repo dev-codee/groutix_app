@@ -4,6 +4,8 @@ import '../../core/config/app_config.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/notifications_provider.dart';
+import 'notifications_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -121,6 +123,74 @@ class ProfileScreen extends StatelessWidget {
               subtitle: Text('Currently active: ${user?.role.label}'),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () => _showRoleSwitcher(context),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Notifications & Alerts Center Tile
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Consumer<NotificationsProvider>(
+              builder: (ctx, notifsProv, _) {
+                return ListTile(
+                  leading: const Icon(Icons.notifications_active_outlined, color: AppColors.primary),
+                  title: const Text('Notifications & Alerts Center', style: TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: Text(
+                    notifsProv.unreadCount > 0
+                        ? '${notifsProv.unreadCount} unread notification${notifsProv.unreadCount > 1 ? "s" : ""}'
+                        : 'System alerts, leads, and chat messages',
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (notifsProv.unreadCount > 0)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${notifsProv.unreadCount}',
+                            style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.chevron_right_rounded),
+                    ],
+                  ),
+                  onTap: () => NotificationsScreen.show(context),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Test Notification Button Tile
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: ListTile(
+              leading: const Icon(Icons.bolt_rounded, color: AppColors.warning),
+              title: const Text('Test Notification Alert', style: TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: const Text('Trigger test lead alert with sound & banner'),
+              trailing: const Icon(Icons.play_arrow_rounded, color: AppColors.primary),
+              onTap: () {
+                context.read<NotificationsProvider>().dispatchTestNotification();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Test notification dispatched! Check your status bar and top banner.'),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
+              },
             ),
           ),
           const SizedBox(height: 12),

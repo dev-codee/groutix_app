@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/app_colors.dart';
 import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
+import '../providers/leads_provider.dart';
+import '../providers/notifications_provider.dart';
 import 'common/profile_screen.dart';
 import 'finance/finance_home_screen.dart';
 import 'inspection/inspection_home_screen.dart';
@@ -20,6 +23,48 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
+  Timer? _syncTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startSyncPolling();
+  }
+
+  @override
+  void dispose() {
+    _syncTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startSyncPolling() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _checkUpdates();
+    });
+
+    // Background poll every 25 seconds
+    _syncTimer = Timer.periodic(const Duration(seconds: 25), (_) async {
+      await _checkUpdates();
+    });
+  }
+
+  Future<void> _checkUpdates() async {
+    if (!mounted) return;
+    final auth = context.read<AuthProvider>();
+    if (!auth.isAuthenticated) return;
+
+    final leadsProv = context.read<LeadsProvider>();
+    await leadsProv.fetchLeads(silent: true);
+    await leadsProv.fetchTeamUnread();
+
+    if (mounted) {
+      context.read<NotificationsProvider>().checkAndNotifyNewEvents(
+        currentLeads: leadsProv.leads,
+        teamUnread: leadsProv.teamUnread,
+        currentRole: auth.currentRole,
+      );
+    }
+  }
 
   void _onNavigateTab(int index) {
     setState(() => _currentIndex = index);

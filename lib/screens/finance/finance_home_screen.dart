@@ -5,8 +5,10 @@ import '../../models/lead_model.dart';
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/leads_provider.dart';
+import '../../providers/notifications_provider.dart';
 import '../common/empty_state.dart';
 import '../common/lead_card.dart';
+import '../common/notifications_screen.dart';
 import '../common/team_chat_modal.dart';
 import 'issue_warranty_sheet.dart';
 import 'record_payment_dialog.dart';
@@ -41,6 +43,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> with SingleTicker
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final leadsProv = context.watch<LeadsProvider>();
+    final notifsProv = context.watch<NotificationsProvider>();
     final financeLeads = leadsProv.getScopedLeads(UserRole.finance);
 
     final needsInvoice = financeLeads.where((l) => l.status == 'Job Done').toList();
@@ -64,6 +67,33 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> with SingleTicker
           ],
         ),
         actions: [
+          IconButton(
+            icon: Stack(
+              children: [
+                const Icon(Icons.notifications_outlined),
+                if (notifsProv.unreadCount > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                      child: Text(
+                        '${notifsProv.unreadCount}',
+                        style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w900),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            tooltip: 'Notifications',
+            onPressed: () => NotificationsScreen.show(context),
+          ),
           IconButton(
             icon: const Icon(Icons.forum_outlined),
             tooltip: 'Team Chat',
