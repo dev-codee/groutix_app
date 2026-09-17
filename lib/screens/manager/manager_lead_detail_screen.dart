@@ -70,18 +70,6 @@ class _ManagerLeadDetailScreenState extends State<ManagerLeadDetailScreen> {
     }
   }
 
-  Future<void> _handleLogCall(String outcome) async {
-    final leadsProv = context.read<LeadsProvider>();
-    final success = await leadsProv.logCall(widget.leadId, outcome);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(success ? 'Logged call: $outcome' : 'Failed to log call'),
-          backgroundColor: success ? AppColors.success : AppColors.danger,
-        ),
-      );
-    }
-  }
 
   Future<void> _pickDateTime({
     required String title,
@@ -147,7 +135,12 @@ class _ManagerLeadDetailScreenState extends State<ManagerLeadDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(lead.displayJobNo),
+        title: Text(
+          '${lead.displayJobNo} • ${lead.displayName}',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
           FilledButton.tonalIcon(
             onPressed: () => JobCardSheet.show(context, lead.id),
@@ -365,22 +358,6 @@ class _ManagerLeadDetailScreenState extends State<ManagerLeadDetailScreen> {
                         _handleStatusChange(val);
                       }
                     },
-                  ),
-                  const SizedBox(height: 12),
-
-                  const Text('Log Phone Call Outcome', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      _buildCallChip('Connected', Icons.call_rounded, AppColors.success),
-                      _buildCallChip('Call Attempted', Icons.phone_forwarded_rounded, AppColors.textSecondary),
-                      _buildCallChip('No Answer', Icons.phone_missed_rounded, AppColors.danger),
-                      _buildCallChip('Callback Requested', Icons.phone_callback_rounded, AppColors.primary),
-                      _buildCallChip('Customer Interested', Icons.thumb_up_rounded, AppColors.success),
-                      _buildCallChip('Not Interested', Icons.thumb_down_rounded, AppColors.danger),
-                    ],
                   ),
                 ],
               ),
@@ -668,8 +645,12 @@ class _ManagerLeadDetailScreenState extends State<ManagerLeadDetailScreen> {
                       Expanded(
                         child: FilledButton.tonalIcon(
                           onPressed: () => EditQuoteModal.show(context, lead),
-                          icon: const Icon(Icons.edit_note_rounded, size: 18),
-                          label: Text(hasQuoteItems ? 'Edit / Build Quote' : '+ Create Quote Items'),
+                          icon: const Icon(Icons.receipt_rounded, size: 17),
+                          label: Text(hasQuoteItems ? 'Edit / Build Quote' : '+ Create Quote'),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                            textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -711,11 +692,38 @@ class _ManagerLeadDetailScreenState extends State<ManagerLeadDetailScreen> {
                             }
                           }
                         },
-                        icon: const Icon(Icons.send_rounded, size: 16),
+                        icon: const Icon(Icons.send_rounded, size: 15),
                         label: const Text('Email PDF'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                        ),
                       ),
                     ],
                   ),
+                  if (!hasQuoteItems) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              'Tap "+ Create Quote" to add service items, scope of work, and auto-calculate 10% GST.',
+                              style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary, height: 1.25),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   if (lead.quoteAcceptedAt != null) ...[
                     const SizedBox(height: 8),
                     Container(
@@ -829,21 +837,33 @@ class _ManagerLeadDetailScreenState extends State<ManagerLeadDetailScreen> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => SendInvoiceSheet.show(context, lead),
-                          child: const Text('Send Invoice'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                            textStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
+                          ),
+                          child: const Text('Send Invoice', maxLines: 1, overflow: TextOverflow.ellipsis),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => RecordPaymentDialog.show(context, lead),
-                          child: const Text('Payment'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                            textStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
+                          ),
+                          child: const Text('Payment', maxLines: 1, overflow: TextOverflow.ellipsis),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => IssueWarrantySheet.show(context, lead),
-                          child: const Text('Warranty'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                            textStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
+                          ),
+                          child: const Text('Warranty', maxLines: 1, overflow: TextOverflow.ellipsis),
                         ),
                       ),
                     ],
@@ -1071,17 +1091,6 @@ class _ManagerLeadDetailScreenState extends State<ManagerLeadDetailScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildCallChip(String label, IconData icon, Color color) {
-    return ActionChip(
-      avatar: Icon(icon, size: 13, color: color),
-      label: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
-      backgroundColor: color.withValues(alpha: 0.08),
-      side: BorderSide(color: color.withValues(alpha: 0.25)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      onPressed: () => _handleLogCall(label),
     );
   }
 }
