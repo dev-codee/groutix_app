@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/launcher_helper.dart';
 import '../../models/lead_model.dart';
+import 'job_card_sheet.dart';
 import 'lead_chat_modal.dart';
 import 'status_pill.dart';
 
@@ -202,6 +203,20 @@ class LeadCard extends StatelessWidget {
                           onPressed: () => LeadChatModal.show(context, lead.id),
                           icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
                           tooltip: 'Chat / Conversation',
+                          style: IconButton.styleFrom(
+                            minimumSize: const Size(36, 36),
+                            side: const BorderSide(color: AppColors.border),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Client Job Card Button
+                        IconButton.outlined(
+                          onPressed: () => JobCardSheet.show(context, lead.id),
+                          icon: const Icon(Icons.badge_outlined, size: 16),
+                          tooltip: 'Job Card',
                           style: IconButton.styleFrom(
                             minimumSize: const Size(36, 36),
                             side: const BorderSide(color: AppColors.border),

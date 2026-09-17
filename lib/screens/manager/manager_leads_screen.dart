@@ -5,6 +5,7 @@ import '../../models/user_model.dart';
 import '../../providers/leads_provider.dart';
 import '../common/empty_state.dart';
 import '../common/lead_card.dart';
+import 'create_lead_modal.dart';
 import 'manager_lead_detail_screen.dart';
 
 class ManagerLeadsScreen extends StatefulWidget {
@@ -175,6 +176,13 @@ class _ManagerLeadsScreenState extends State<ManagerLeadsScreen> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => CreateLeadModal.show(context),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('New Lead'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
       ),
     );
   }

@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/leads_provider.dart';
 import '../common/empty_state.dart';
 import '../common/lead_card.dart';
+import '../common/team_chat_modal.dart';
 import 'issue_warranty_sheet.dart';
 import 'record_payment_dialog.dart';
 import 'send_invoice_sheet.dart';
@@ -63,6 +64,11 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> with SingleTicker
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.forum_outlined),
+            tooltip: 'Team Chat',
+            onPressed: () => TeamChatModal.show(context),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () => leadsProv.fetchLeads(),

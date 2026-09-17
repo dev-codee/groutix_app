@@ -5,18 +5,24 @@ import '../core/api/api_client.dart';
 import '../core/api/endpoints.dart';
 import '../core/utils/geo_helper.dart';
 import '../models/lead_model.dart';
+import '../models/team_message_model.dart';
 import '../models/user_model.dart';
 
 class LeadsProvider with ChangeNotifier {
   final ApiClient _api = ApiClient();
 
   List<LeadModel> _leads = [];
+  List<StaffMemberModel> _staff = [];
+  Map<String, int> _teamUnread = {};
   bool _isLoading = false;
   String? _errorMessage;
   String _searchQuery = '';
   String? _selectedStatusFilter;
 
   List<LeadModel> get leads => _leads;
+  List<StaffMemberModel> get staff => _staff;
+  Map<String, int> get teamUnread => _teamUnread;
+  int get totalTeamUnread => _teamUnread.values.fold(0, (sum, count) => sum + count);
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   String get searchQuery => _searchQuery;
@@ -294,6 +300,70 @@ class LeadsProvider with ChangeNotifier {
     }
   }
 
+  Future<LeadModel?> createLead(Map<String, dynamic> leadData) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _api.post(
+        ApiEndpoints.submissions,
+        data: leadData,
+      );
+
+      _isLoading = false;
+      if (response.data != null && response.data['item'] != null) {
+        final newLead = LeadModel.fromJson(response.data['item'] as Map<String, dynamic>);
+        _leads.insert(0, newLead);
+        notifyListeners();
+        return newLead;
+      }
+      _errorMessage = 'Could not create lead.';
+      notifyListeners();
+      return null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    }
+  }
+
+  Future<bool> sendQuote(String leadId) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.sendQuote,
+        data: {'id': leadId},
+      );
+
+      if (response.data != null && response.data['ok'] == true) {
+        await updateLeadField(leadId, {'status': 'Quote Sent'});
+        await fetchLeads(silent: true);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<Map<String, String>?> fetchBookingLinks(String leadId) async {
+    try {
+      final response = await _api.get(ApiEndpoints.bookingLink(leadId));
+      if (response.data != null) {
+        return {
+          'inspectionUrl': response.data['inspectionUrl']?.toString() ?? '',
+          'jobUrl': response.data['jobUrl']?.toString() ?? '',
+        };
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<Map<String, dynamic>?> notifyOnTheWay(String leadId, {required String eventType}) async {
     try {
       final pos = await GeoHelper.getCurrentLocation();
@@ -415,4 +485,81 @@ class LeadsProvider with ChangeNotifier {
       return false;
     }
   }
+
+  // --- Staff & Internal Team Messaging ---
+
+  Future<List<StaffMemberModel>> fetchStaff() async {
+    try {
+      final response = await _api.get(ApiEndpoints.staff);
+      if (response.data != null && response.data['staff'] is List) {
+        final list = (response.data['staff'] as List)
+            .map((item) => StaffMemberModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+        _staff = list;
+        notifyListeners();
+        return list;
+      }
+      return _staff;
+    } catch (e) {
+      debugPrint('Error fetching staff: $e');
+      return _staff;
+    }
+  }
+
+  Future<List<TeamMessageModel>> fetchTeamMessages(String withUsername) async {
+    try {
+      final response = await _api.get(
+        ApiEndpoints.teamMessages,
+        queryParameters: {'with': withUsername},
+      );
+      if (response.data != null && response.data['messages'] is List) {
+        final list = (response.data['messages'] as List)
+            .map((item) => TeamMessageModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+        // Clear unread for this user locally
+        _teamUnread.remove(withUsername.toLowerCase());
+        notifyListeners();
+        return list;
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching team messages: $e');
+      return [];
+    }
+  }
+
+  Future<TeamMessageModel?> sendTeamMessage(String toUsername, String text) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.teamMessages,
+        data: {
+          'to': toUsername,
+          'text': text.trim(),
+        },
+      );
+      if (response.data != null && response.data['message'] != null) {
+        return TeamMessageModel.fromJson(response.data['message'] as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error sending team message: $e');
+      return null;
+    }
+  }
+
+  Future<void> fetchTeamUnread() async {
+    try {
+      final response = await _api.get(ApiEndpoints.teamMessages);
+      if (response.data != null && response.data['unread'] is Map) {
+        final map = (response.data['unread'] as Map).map(
+          (key, value) => MapEntry(key.toString().toLowerCase(), int.tryParse(value.toString()) ?? 0),
+        );
+        _teamUnread = map;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error fetching team unread: $e');
+    }
+  }
 }
+

@@ -8,6 +8,7 @@ class ApiEndpoints {
   static String leadCall(String id) => '/api/admin/lead/$id/call';
   static String leadEmail(String id) => '/api/admin/lead/$id/email';
   static String leadSms(String id) => '/api/admin/lead/$id/sms';
+  static String bookingLink(String id) => '/api/admin/booking-link/$id';
   
   static const String onTheWay = '/api/admin/on-the-way';
   static const String sendInvoice = '/api/admin/invoice/send';
@@ -19,5 +20,7 @@ class ApiEndpoints {
   
   static const String stats = '/api/admin/stats';
   static const String technicians = '/api/admin/technicians';
+  static const String staff = '/api/admin/staff';
   static const String teamMessages = '/api/admin/team-messages';
 }
+

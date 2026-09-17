@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/launcher_helper.dart';
 import '../../providers/leads_provider.dart';
+import '../common/job_card_sheet.dart';
 import '../common/lead_chat_modal.dart';
 import '../common/status_pill.dart';
+import '../common/team_chat_modal.dart';
 import 'inspection_form_screen.dart';
 import 'inspection_photos_screen.dart';
 
@@ -125,6 +127,23 @@ class _InspectionVisitScreenState extends State<InspectionVisitScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('${lead.displayJobNo} Visit'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.badge_outlined),
+            tooltip: 'Job Card',
+            onPressed: () => JobCardSheet.show(context, lead.id),
+          ),
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline_rounded),
+            tooltip: 'Message Customer',
+            onPressed: () => LeadChatModal.show(context, lead.id),
+          ),
+          IconButton(
+            icon: const Icon(Icons.forum_outlined),
+            tooltip: 'Team Chat / Office',
+            onPressed: () => TeamChatModal.show(context),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

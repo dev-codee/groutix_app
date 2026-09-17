@@ -5,6 +5,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/leads_provider.dart';
 import '../common/empty_state.dart';
 import '../common/lead_card.dart';
+import '../common/team_chat_modal.dart';
 import 'inspection_visit_screen.dart';
 
 class InspectionHomeScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class _InspectionHomeScreenState extends State<InspectionHomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<LeadsProvider>().fetchLeads();
+      context.read<LeadsProvider>().fetchTeamUnread();
     });
   }
 
@@ -37,9 +39,17 @@ class _InspectionHomeScreenState extends State<InspectionHomeScreen> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.forum_outlined),
+            tooltip: 'Team Chat / Office',
+            onPressed: () => TeamChatModal.show(context),
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Refresh',
-            onPressed: () => leadsProv.fetchLeads(),
+            onPressed: () {
+              leadsProv.fetchLeads();
+              leadsProv.fetchTeamUnread();
+            },
           ),
         ],
       ),

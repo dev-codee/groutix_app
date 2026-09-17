@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/date_formatter.dart';
 import '../../core/utils/launcher_helper.dart';
 import '../../providers/leads_provider.dart';
+import '../common/edit_quote_modal.dart';
+import '../common/job_card_sheet.dart';
 import '../common/lead_chat_modal.dart';
 import '../common/photo_viewer_modal.dart';
 import '../common/status_pill.dart';
+import '../common/team_chat_modal.dart';
 import '../finance/issue_warranty_sheet.dart';
 import '../finance/record_payment_dialog.dart';
 import '../finance/send_invoice_sheet.dart';
@@ -145,6 +149,20 @@ class _ManagerLeadDetailScreenState extends State<ManagerLeadDetailScreen> {
       appBar: AppBar(
         title: Text(lead.displayJobNo),
         actions: [
+          FilledButton.tonalIcon(
+            onPressed: () => JobCardSheet.show(context, lead.id),
+            icon: const Icon(Icons.badge_outlined, size: 16),
+            label: const Text('Job Card'),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(0, 32),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline_rounded),
+            tooltip: 'Customer Messages',
+            onPressed: () => LeadChatModal.show(context, lead.id),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Refresh',
@@ -476,12 +494,133 @@ class _ManagerLeadDetailScreenState extends State<ManagerLeadDetailScreen> {
                   const Divider(height: 16),
 
                   // Staff & Technician
-                  _buildDetailRow('Assigned Staff', lead.assigned ?? 'Unassigned'),
-                  _buildDetailRow('Field Technician', lead.technician ?? 'Unassigned'),
+                  _buildDetailRow(
+                    'Assigned Staff',
+                    lead.assigned ?? 'Unassigned',
+                    trailing: (lead.assigned != null &&
+                            lead.assigned!.isNotEmpty &&
+                            lead.assigned!.toLowerCase() != 'unassigned')
+                        ? InkWell(
+                            onTap: () => TeamChatModal.show(
+                              context,
+                              username: lead.assigned,
+                              name: lead.assigned,
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.chat_bubble_outline_rounded, size: 14, color: AppColors.primary),
+                                  SizedBox(width: 4),
+                                  Text('Chat', style: TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w700)),
+                                ],
+                              ),
+                            ),
+                          )
+                        : null,
+                  ),
+                  _buildDetailRow(
+                    'Field Technician',
+                    lead.technician ?? 'Unassigned',
+                    trailing: (lead.technician != null &&
+                            lead.technician!.isNotEmpty &&
+                            lead.technician!.toLowerCase() != 'unassigned')
+                        ? InkWell(
+                            onTap: () => TeamChatModal.show(
+                              context,
+                              username: lead.technician,
+                              name: lead.technician,
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.chat_bubble_outline_rounded, size: 14, color: AppColors.primary),
+                                  SizedBox(width: 4),
+                                  Text('Chat', style: TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w700)),
+                                ],
+                              ),
+                            ),
+                          )
+                        : null,
+                  ),
                   if (lead.contacted != null && lead.contacted!.isNotEmpty)
                     _buildDetailRow('First Contacted', DateFormatter.formatRelative(lead.contacted!)),
                   if (lead.follow != null && lead.follow!.isNotEmpty)
                     _buildDetailRow('Next Follow-Up', DateFormatter.formatAppt(lead.follow!)),
+                  const Divider(height: 20),
+
+                  // Customer Self-Booking Links
+                  const Text(
+                    'Customer Self-Booking Links',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            final links = await leadsProv.fetchBookingLinks(lead.id);
+                            final url = links?['inspectionUrl']?.toString();
+                            if (url != null && url.isNotEmpty) {
+                              await Clipboard.setData(ClipboardData(text: url));
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Copied Inspection Booking Link to clipboard!'),
+                                    backgroundColor: AppColors.success,
+                                  ),
+                                );
+                              }
+                            } else if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('No inspection booking link available'),
+                                  backgroundColor: AppColors.warning,
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.link_rounded, size: 16),
+                          label: const Text('Inspection Link'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            final links = await leadsProv.fetchBookingLinks(lead.id);
+                            final url = links?['jobUrl']?.toString();
+                            if (url != null && url.isNotEmpty) {
+                              await Clipboard.setData(ClipboardData(text: url));
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Copied Job Booking Link to clipboard!'),
+                                    backgroundColor: AppColors.success,
+                                  ),
+                                );
+                              }
+                            } else if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('No job booking link available'),
+                                  backgroundColor: AppColors.warning,
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.link_rounded, size: 16),
+                          label: const Text('Job Booking Link'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -519,6 +658,62 @@ class _ManagerLeadDetailScreenState extends State<ManagerLeadDetailScreen> {
                             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
                           ),
                         ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Quote Builder & Dispatch Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FilledButton.tonalIcon(
+                          onPressed: () => EditQuoteModal.show(context, lead),
+                          icon: const Icon(Icons.edit_note_rounded, size: 18),
+                          label: Text(hasQuoteItems ? 'Edit / Build Quote' : '+ Create Quote Items'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          if (lead.email == null || lead.email!.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('No email address saved for this customer.'),
+                                backgroundColor: AppColors.warning,
+                              ),
+                            );
+                            return;
+                          }
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Send Official Quote PDF'),
+                              content: Text('Email official Groutix quotation PDF to ${lead.email}?'),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                                FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Send Email')),
+                              ],
+                            ),
+                          );
+                          if (confirm == true && context.mounted) {
+                            final success = await leadsProv.sendQuote(lead.id);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    success
+                                        ? 'Official Quote PDF emailed to ${lead.email}!'
+                                        : 'Failed to send quote.',
+                                  ),
+                                  backgroundColor: success ? AppColors.success : AppColors.danger,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.send_rounded, size: 16),
+                        label: const Text('Email PDF'),
+                      ),
                     ],
                   ),
                   if (lead.quoteAcceptedAt != null) ...[
@@ -819,7 +1014,7 @@ class _ManagerLeadDetailScreenState extends State<ManagerLeadDetailScreen> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {bool isBold = false}) {
+  Widget _buildDetailRow(String label, String value, {bool isBold = false, Widget? trailing}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
@@ -842,6 +1037,7 @@ class _ManagerLeadDetailScreenState extends State<ManagerLeadDetailScreen> {
               ),
             ),
           ),
+          ?trailing,
         ],
       ),
     );

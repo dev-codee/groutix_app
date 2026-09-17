@@ -7,6 +7,8 @@ import '../../providers/leads_provider.dart';
 import '../../providers/tasks_provider.dart';
 import '../common/lead_card.dart';
 import '../common/status_pill.dart';
+import '../common/team_chat_modal.dart';
+import 'create_lead_modal.dart';
 import 'manager_lead_detail_screen.dart';
 
 class ManagerDashboardScreen extends StatefulWidget {
@@ -25,7 +27,10 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<LeadsProvider>().fetchLeads();
+      final leads = context.read<LeadsProvider>();
+      leads.fetchLeads();
+      leads.fetchTeamUnread();
+      leads.fetchStaff();
       context.read<TasksProvider>().fetchTasks();
     });
   }
@@ -90,10 +95,47 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
         ),
         actions: [
           IconButton(
+            icon: Stack(
+              children: [
+                const Icon(Icons.forum_outlined),
+                if (leadsProv.totalTeamUnread > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        color: AppColors.danger,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                      child: Text(
+                        '${leadsProv.totalTeamUnread}',
+                        style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w900),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            tooltip: 'Team Chat',
+            onPressed: () => TeamChatModal.show(context),
+          ),
+          FilledButton.tonalIcon(
+            onPressed: () => CreateLeadModal.show(context),
+            icon: const Icon(Icons.add_rounded, size: 16),
+            label: const Text('New Lead'),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(0, 32),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+            ),
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Refresh',
             onPressed: () {
               leadsProv.fetchLeads();
+              leadsProv.fetchTeamUnread();
               tasksProv.fetchTasks();
             },
           ),
