@@ -223,14 +223,22 @@ class LeadModel {
         activity = activity ?? [];
 
   String get displayJobNo {
-    if (jobNo != null && jobNo!.isNotEmpty) {
-      if (jobNo!.toLowerCase().startsWith('jobno-')) return jobNo!;
-      return 'JobNo-${jobNo!.replaceAll(RegExp(r'^job-?', caseSensitive: false), '')}';
+    if (jobNo != null && jobNo!.trim().isNotEmpty) {
+      String clean = jobNo!.trim();
+      clean = clean.replaceAll(RegExp(r'^(jobno|job|no)[-:\s.]*', caseSensitive: false), '');
+      clean = clean.replaceAll(RegExp(r'^(jobno|job|no)[-:\s.]*', caseSensitive: false), '');
+      if (clean.isNotEmpty) {
+        return '#$clean';
+      }
+      return '#${jobNo!.trim()}';
     }
-    return 'JobNo-${id.length >= 4 ? id.substring(0, 4).toUpperCase() : id}';
+    final fallback = id.length >= 4 ? id.substring(0, 4).toUpperCase() : id;
+    return '#$fallback';
   }
 
   String get displayName => (name != null && name!.trim().isNotEmpty) ? name! : 'Unnamed Customer';
+
+  String? get serviceType => service;
 
   String get fullAddress {
     final parts = [address, city, state].where((p) => p != null && p.trim().isNotEmpty);

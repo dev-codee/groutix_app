@@ -15,10 +15,10 @@ void main() {
 
       // Test displayJobNo formatting helper
       final leadWithGX = LeadModel(id: '12345678', jobNo: 'JOB-9921');
-      expect(leadWithGX.displayJobNo, equals('JobNo-9921'));
+      expect(leadWithGX.displayJobNo, equals('#9921'));
 
       final leadWithoutNo = LeadModel(id: 'abcd1234');
-      expect(leadWithoutNo.displayJobNo, equals('JobNo-ABCD'));
+      expect(leadWithoutNo.displayJobNo, equals('#ABCD'));
     });
   });
 }

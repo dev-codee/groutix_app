@@ -65,7 +65,7 @@ class DateFormatter {
   }
 
   static String formatTodayHeader() {
-    return DateFormat('EEEE, d MMMM yyyy').format(DateTime.now());
+    return DateFormat('EEEE, d MMM yyyy').format(DateTime.now());
   }
 }
 

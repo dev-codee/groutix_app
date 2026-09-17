@@ -83,16 +83,22 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: 16,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               'Hello, ${auth.currentUser?.displayName ?? "Manager"}',
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+              style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w900),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             Text(
               DateFormatter.formatTodayHeader(),
               style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -151,24 +157,12 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
             tooltip: 'Team Chat',
             onPressed: () => TeamChatModal.show(context),
           ),
-          FilledButton.tonalIcon(
-            onPressed: () => CreateLeadModal.show(context),
-            icon: const Icon(Icons.add_rounded, size: 16),
-            label: const Text('New Lead'),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size(0, 32),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-            ),
-          ),
           IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Refresh',
-            onPressed: () {
-              leadsProv.fetchLeads();
-              leadsProv.fetchTeamUnread();
-              tasksProv.fetchTasks();
-            },
+            icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 26),
+            tooltip: 'New Lead',
+            onPressed: () => CreateLeadModal.show(context),
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: RefreshIndicator(
@@ -378,8 +372,7 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                               );
                           final apptTime = isInsp ? appt.inspectionAt : appt.jobAt;
 
-                          return ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                          return InkWell(
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -388,59 +381,196 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                                 ),
                               );
                             },
-                            leading: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: isInsp ? Colors.blue.shade50 : Colors.deepOrange.shade50,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: isInsp ? Colors.blue.shade200 : Colors.deepOrange.shade200,
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(
-                                    isInsp ? Icons.search_rounded : Icons.engineering_rounded,
-                                    size: 14,
-                                    color: isInsp ? Colors.blue.shade800 : Colors.deepOrange.shade800,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    DateFormatter.formatApptTime(apptTime),
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800,
-                                      color: isInsp ? Colors.blue.shade900 : Colors.deepOrange.shade900,
+                                  // Time & Category Badge
+                                  Container(
+                                    width: 62,
+                                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                                    decoration: BoxDecoration(
+                                      color: isInsp ? const Color(0xFFF0F7FF) : const Color(0xFFFFF7ED),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: isInsp ? const Color(0xFFBFDBFE) : const Color(0xFFFED7AA),
+                                        width: 1,
+                                      ),
                                     ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          isInsp ? Icons.search_rounded : Icons.engineering_rounded,
+                                          size: 16,
+                                          color: isInsp ? const Color(0xFF1D4ED8) : const Color(0xFFC2410C),
+                                        ),
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          DateFormatter.formatApptTime(apptTime),
+                                          style: TextStyle(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: isInsp ? const Color(0xFF1E40AF) : const Color(0xFF9A3412),
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                          decoration: BoxDecoration(
+                                            color: isInsp
+                                                ? const Color(0xFFDBEAFE)
+                                                : const Color(0xFFFFEDD5),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            isInsp ? 'INSP' : 'JOB',
+                                            style: TextStyle(
+                                              fontSize: 8.5,
+                                              fontWeight: FontWeight.w800,
+                                              color: isInsp
+                                                  ? const Color(0xFF1D4ED8)
+                                                  : const Color(0xFFC2410C),
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 12),
+
+                                  // Details Column
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // Line 1: Customer Name + Job # + Status Pill
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Row(
+                                                children: [
+                                                  Flexible(
+                                                    child: Text(
+                                                      appt.displayName,
+                                                      style: const TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.w700,
+                                                        color: AppColors.textPrimary,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                                    decoration: BoxDecoration(
+                                                      color: AppColors.primary.withValues(alpha: 0.08),
+                                                      borderRadius: BorderRadius.circular(5),
+                                                    ),
+                                                    child: Text(
+                                                      appt.displayJobNo,
+                                                      style: const TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.w700,
+                                                        color: AppColors.primary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            StatusPill(status: appt.status, isSmall: true),
+                                          ],
+                                        ),
+
+                                        const SizedBox(height: 6),
+
+                                        // Line 2: Full Address with Map Pin
+                                        Row(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: [
+                                            const Icon(Icons.location_on_outlined, size: 13, color: AppColors.textMuted),
+                                            const SizedBox(width: 4),
+                                            Expanded(
+                                              child: Text(
+                                                appt.fullAddress,
+                                                style: const TextStyle(
+                                                  fontSize: 11.5,
+                                                  color: AppColors.textSecondary,
+                                                  height: 1.2,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+
+                                        // Line 3: Service Type & Assigned Tech (if present)
+                                        if ((appt.serviceType != null && appt.serviceType!.isNotEmpty) ||
+                                            (appt.technician != null && appt.technician!.isNotEmpty)) ...[
+                                          const SizedBox(height: 5),
+                                          Row(
+                                            children: [
+                                              if (appt.serviceType != null && appt.serviceType!.isNotEmpty)
+                                                Flexible(
+                                                  child: Text(
+                                                    appt.serviceType!,
+                                                    style: const TextStyle(
+                                                      fontSize: 11,
+                                                      color: AppColors.textMuted,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              if (appt.serviceType != null &&
+                                                  appt.serviceType!.isNotEmpty &&
+                                                  appt.technician != null &&
+                                                  appt.technician!.isNotEmpty)
+                                                const Padding(
+                                                  padding: EdgeInsets.symmetric(horizontal: 6),
+                                                  child: Text('•', style: TextStyle(color: AppColors.textMuted, fontSize: 10)),
+                                                ),
+                                              if (appt.technician != null && appt.technician!.isNotEmpty)
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(Icons.badge_outlined, size: 12, color: AppColors.textMuted),
+                                                    const SizedBox(width: 3),
+                                                    Text(
+                                                      appt.technician!,
+                                                      style: const TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.w500,
+                                                        color: AppColors.textSecondary,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                            ],
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 6),
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 8),
+                                    child: Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textMuted),
                                   ),
                                 ],
                               ),
                             ),
-                            title: Row(
-                              children: [
-                                Text(
-                                  appt.displayName,
-                                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  appt.displayJobNo,
-                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary),
-                                ),
-                              ],
-                            ),
-                            subtitle: Text(
-                              [
-                                if (appt.address != null && appt.address!.isNotEmpty) appt.fullAddress,
-                                if (appt.technician != null && appt.technician!.isNotEmpty) 'Tech: ${appt.technician}',
-                              ].join(' • '),
-                              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing: StatusPill(status: appt.status),
                           );
                         },
                       ),

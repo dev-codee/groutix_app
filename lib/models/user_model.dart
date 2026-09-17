@@ -73,7 +73,17 @@ class UserModel {
     this.token,
   });
 
-  String get displayName => (name != null && name!.trim().isNotEmpty) ? name! : username;
+  String get displayName {
+    if (name != null && name!.trim().isNotEmpty) return name!;
+    if (username.contains('@')) {
+      final part = username.split('@').first;
+      if (part.toLowerCase().contains('groutixmanager') || part.toLowerCase() == 'manager') {
+        return 'Manager';
+      }
+      return part;
+    }
+    return username;
+  }
 
   factory UserModel.fromJson(Map<String, dynamic> json, {String? token}) {
     return UserModel(
